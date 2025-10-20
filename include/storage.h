@@ -2,7 +2,7 @@
 #define STORAGE_H
 
 // Storage helpers (SPIFFS)
-void storageInit();
+void storageInit(bool clearBeforeBegin = false);
 void saveFailedLog(String jsonStr);
 String readFailedLogs();
 void clearFailedLogs();
