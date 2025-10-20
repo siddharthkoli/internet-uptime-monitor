@@ -13,11 +13,17 @@
 const char* WIFI_SSID = ENV_WIFI_SSID;
 const char* WIFI_PASS = ENV_WIFI_PASS;
 const char* EDGE_FUNCTION_URL = ENV_EDGE_FUNCTION_URL;
-const char* DEVICE_ID = "ESP32-01";
 const char* JWT = ENV_JWT;
+
+const char* DEVICE_ID = "ESP32-01";
 const long SEND_INTERVAL = 60000;  // 1 min
+
 const int LED_BLINK_SUCCESS = 1;
 const int LED_BLINK_FAILURE = 2;
+const int DEFAULT_BLINK_DELAY_MS = 250;
+
+const int STORAGE_CLEAR_BEFORE_BEGIN = false;
+
 
 // ==== Globals ====
 Preferences prefs;
@@ -35,7 +41,7 @@ void setup() {
   }
   Serial.println(" Connected!");
 
-  storageInit();
+  storageInit(STORAGE_CLEAR_BEFORE_BEGIN);
   networkingInit();
 
   prefs.begin("netmon", false);
@@ -65,15 +71,15 @@ void loop() {
   };
   if (retryWithBackoff(sendOp)) {
     Serial.println(" Sent successfully.");
-    blinkLED(LED_BLINK_SUCCESS);
+    blinkLED(LED_BLINK_SUCCESS, DEFAULT_BLINK_DELAY_MS);
     // Now retry old logs if any
     String oldLogs = readFailedLogs();
     if (oldLogs != "[]" && sendBatchLogs(oldLogs, EDGE_FUNCTION_URL, JWT)) {
         Serial.println("Sent previous failed logs.");
         clearFailedLogs();
-      }
+    }
   } else {
-    blinkLED(LED_BLINK_FAILURE);
+    blinkLED(LED_BLINK_FAILURE, DEFAULT_BLINK_DELAY_MS);
     Serial.println("Send failed — saving locally.");
     doc["status"] = "DOWN";
     String failJson;
@@ -83,4 +89,11 @@ void loop() {
 
   // Wait until the next real minute tick
   waitUntilNextFullMinute();
+
+  // String oldLogs = readFailedLogs();
+  // Serial.printf("Old Logs: %s\n", oldLogs.c_str());
+  // clearFailedLogs();
+  // oldLogs = readFailedLogs();
+  // Serial.printf("Old Logs after clear: %s\n", oldLogs.c_str());
+  // delay(5000);
 }
