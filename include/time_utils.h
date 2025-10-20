@@ -13,4 +13,3 @@ void waitUntilNextFullMinute();
 extern bool timeSynced;
 
 #endif
-```
