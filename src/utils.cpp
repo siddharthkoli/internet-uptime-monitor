@@ -1,14 +1,15 @@
 #include <Arduino.h>
+#include "../include/utils.h"
 
-void blinkLED(int delay) {
+void blinkLED(int delayMs) {
     digitalWrite(LED_BUILTIN, HIGH);
-    ::delay(delay);
+    ::delay(delayMs);
     digitalWrite(LED_BUILTIN, LOW);
-    ::delay(delay);
+    ::delay(delayMs);
 }
 
-void blinkLED(int times, int delay) {
+void blinkLED(int times, int delayMs) {
     for (int i = 0; i < times; i++) {
-        blinkLED(delay);
+        blinkLED(delayMs);
     }
 }
