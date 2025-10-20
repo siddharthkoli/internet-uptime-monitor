@@ -4,6 +4,13 @@
 
 #include <functional>
 
+void networkingInit() {
+  Serial.println("\nConfiguring network settings");
+  #if defined(WIFI_AP_STA) || defined(WIFI_STA)
+  WiFi.setAutoReconnect(true);
+  #endif
+}
+
 bool sendBatchLogs(const String &batchJson, const char* url, const char* jwt) {
   if (WiFi.status() != WL_CONNECTED) return false;
   HTTPClient http;
