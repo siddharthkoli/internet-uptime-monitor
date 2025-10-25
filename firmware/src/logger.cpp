@@ -11,7 +11,7 @@ std::queue<String> buffer;
 TaskHandle_t consumerHandle = NULL;
 SemaphoreHandle_t mtx = NULL;
 
-const int UPLOAD_TASK_STACK_SIZE = 10'000;
+const int UPLOAD_TASK_STACK_SIZE = 10000;
 
 void loggerInit() {
     if (mtx == NULL) {
@@ -23,9 +23,9 @@ void loggerInit() {
         "uploadLog",            // Task name
         UPLOAD_TASK_STACK_SIZE, // Stack size (bytes)
         NULL,                   // Parameters
-        0,                      // Priority
+        1,                      // Priority
         &consumerHandle,        // Task handle
-        1                       // Core 1
+        0                       // Core 0
     );
 }
 
@@ -56,17 +56,22 @@ void logln(const String message) {
 
 String constructLogIngestionPayload(const String &logMessage) {
     JsonDocument doc;
-    JsonArray requests = doc.createNestedArray("requests");
-    JsonObject executeReq = requests.createNestedObject();
-    executeReq["type"] = "execute";
-    JsonObject stmt = executeReq.createNestedObject("stmt");
-    stmt["sql"] = "insert into t_serial_logs (message) values(?)";
-    JsonArray args = stmt.createNestedArray("args");
-    JsonObject arg0 = args.createNestedObject();
-    arg0["type"] = "text";
-    arg0["value"] = logMessage;
-    JsonObject closeReq = requests.createNestedObject();
-    closeReq["type"] = "close";
+
+    JsonArray requests = doc["requests"].to<JsonArray>();
+
+    JsonObject requests_0 = requests.add<JsonObject>();
+    requests_0["type"] = "execute";
+
+    JsonObject requests_0_stmt = requests_0["stmt"].to<JsonObject>();
+    requests_0_stmt["sql"] = "insert into t_serial_logs(message) values(?)";
+
+    JsonObject requests_0_stmt_args_0 = requests_0_stmt["args"].add<JsonObject>();
+    requests_0_stmt_args_0["type"] = "text";
+    requests_0_stmt_args_0["value"] = logMessage;
+    requests[1]["type"] = "close";
+
+    doc.shrinkToFit();
+
     String jsonStr;
     serializeJson(doc, jsonStr);
     return jsonStr;
@@ -86,7 +91,7 @@ void uploadLog(void* parameter) {
 
             // Attempt to send the log entry with retries
             bool success = retryWithBackoff([&]() {
-                return sendSingleLog(logEntry, LOG_INGESTION_URL, LOG_INGESTION_JWT);
+                return httpPost(constructLogIngestionPayload(logEntry), LOG_INGESTION_URL, LOG_INGESTION_JWT);
             });
         } else {
             xSemaphoreGive(mtx);

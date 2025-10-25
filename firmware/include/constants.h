@@ -27,6 +27,6 @@ static const int DEFAULT_BLINK_DELAY_MS = 250;
 static const int STORAGE_CLEAR_BEFORE_BEGIN = false;
 
 // Network
-static const long SEND_INTERVAL = 60'000;  // 1 min
+static const long SEND_INTERVAL = 60000;  // 1 min
 
 #endif
