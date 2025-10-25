@@ -7,9 +7,10 @@
 
 // Supabase 
 #define ENV_EDGE_FUNCTION_URL ""
-#define ENV_JWT ""
+#define ENV_EDGE_FUNCTION_JWT ""
 
 // Turso
 #define ENV_LOG_INGESTION_URL ""
+#define ENV_LOG_INGESTION_JWT ""
 
 #endif
