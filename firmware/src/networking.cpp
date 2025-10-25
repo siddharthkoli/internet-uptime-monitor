@@ -20,17 +20,7 @@ HTTPClient createHTTPClient(const char* url, const char* jwt, const char* conten
   return http;
 }
 
-bool sendBatchLogs(const String &batchJson, const char* url, const char* jwt) {
-  if (WiFi.status() != WL_CONNECTED) return false;
-  HTTPClient http = createHTTPClient(url, jwt);
-  logf("Batch Payload: %s\n", batchJson.c_str());
-  int code = http.POST(batchJson);
-  bool success = (code > 0 && code < 300);
-  http.end();
-  return success;
-}
-
-bool sendSingleLog(const String &jsonStr, const char* url, const char* jwt) {
+bool httpPost(const String &jsonStr, const char* url, const char* jwt) {
   if (WiFi.status() != WL_CONNECTED) return false;
   HTTPClient http = createHTTPClient(url, jwt);
   logf("Payload: %s\n", jsonStr.c_str());
