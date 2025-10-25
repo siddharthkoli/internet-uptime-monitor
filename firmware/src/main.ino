@@ -27,7 +27,7 @@ void setup() {
     delay(500);
     log(".");
   }
-  log(" Connected!\n");
+  logln(" Connected!");
 
   storageInit(STORAGE_CLEAR_BEFORE_BEGIN);
   networkingInit();
@@ -51,24 +51,24 @@ void loop() {
   String jsonStr;
   serializeJson(doc, jsonStr);
 
-  Serial.printf("Minute %d -> sending log...\n", minuteCounter);
+  logf("Minute %d -> sending log...\n", minuteCounter);
 
   // Try sending to Supabase with retries
   auto sendOp = [&]() {
-    return sendSingleLog(jsonStr, EDGE_FUNCTION_URL, JWT);
+    return httpPost(jsonStr, EDGE_FUNCTION_URL, EDGE_FUNCTION_JWT);
   };
   if (retryWithBackoff(sendOp)) {
-    Serial.println(" Sent successfully.");
+    logln(" Sent successfully.");
     blinkLED(LED_BLINK_SUCCESS, DEFAULT_BLINK_DELAY_MS);
     // Now retry old logs if any
     String oldLogs = readFailedLogs();
-    if (oldLogs != "[]" && sendBatchLogs(oldLogs, EDGE_FUNCTION_URL, JWT)) {
-        Serial.println("Sent previous failed logs.");
+    if (oldLogs != "[]" && httpPost(oldLogs, EDGE_FUNCTION_URL, EDGE_FUNCTION_JWT)) {
+        logln("Sent previous failed logs.");
         clearFailedLogs();
     }
   } else {
     blinkLED(LED_BLINK_FAILURE, DEFAULT_BLINK_DELAY_MS);
-    Serial.println("Send failed — saving locally.");
+    logln("Send failed — saving locally.");
     doc["status"] = "DOWN";
     String failJson;
     serializeJson(doc, failJson);

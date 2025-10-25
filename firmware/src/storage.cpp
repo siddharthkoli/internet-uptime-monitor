@@ -1,10 +1,12 @@
 #include <FS.h>
 #include <SPIFFS.h>
+
 #include "storage.h"
+#include "logger.h"
 
 void storageInit(bool clearBeforeBegin) {
   if (!SPIFFS.begin(true)) {
-    Serial.println("SPIFFS init failed!");
+    logln("SPIFFS init failed!");
     return;
   }
   if (clearBeforeBegin) {
@@ -38,6 +40,6 @@ String readFailedLogs() {
 }
 
 void clearFailedLogs() {
-  Serial.println("\nClearing previously failed logs");
+  logln("\nClearing previously failed logs");
   SPIFFS.remove("/failed_logs.txt");
 }
