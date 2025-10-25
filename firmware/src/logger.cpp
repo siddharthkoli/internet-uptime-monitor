@@ -1,8 +1,10 @@
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <queue>
 
 #include "logger.h"
 #include "networking.h"
+#include "constants.h"
 
 std::queue<String> buffer;
 
@@ -52,6 +54,24 @@ void logln(const String message) {
     log(message + "\n");
 }
 
+String constructLogIngestionPayload(const String &logMessage) {
+    JsonDocument doc;
+    JsonArray requests = doc.createNestedArray("requests");
+    JsonObject executeReq = requests.createNestedObject();
+    executeReq["type"] = "execute";
+    JsonObject stmt = executeReq.createNestedObject("stmt");
+    stmt["sql"] = "insert into t_serial_logs (message) values(?)";
+    JsonArray args = stmt.createNestedArray("args");
+    JsonObject arg0 = args.createNestedObject();
+    arg0["type"] = "text";
+    arg0["value"] = logMessage;
+    JsonObject closeReq = requests.createNestedObject();
+    closeReq["type"] = "close";
+    String jsonStr;
+    serializeJson(doc, jsonStr);
+    return jsonStr;
+}
+
 void uploadLog(void* parameter) {
     while (true) {
         if (mtx == NULL) {
@@ -66,15 +86,8 @@ void uploadLog(void* parameter) {
 
             // Attempt to send the log entry with retries
             bool success = retryWithBackoff([&]() {
-                return sendSingleLog(logEntry, EDGE_FUNCTION_URL, JWT);
+                return sendSingleLog(logEntry, LOG_INGESTION_URL, LOG_INGESTION_JWT);
             });
-
-            if (!success) {
-                // If sending failed after retries, re-enqueue the log entry
-                xSemaphoreTake(mtx, portMAX_DELAY);
-                buffer.push(logEntry);
-                xSemaphoreGive(mtx);
-            }
         } else {
             xSemaphoreGive(mtx);
             // No logs to process, yield to other tasks
