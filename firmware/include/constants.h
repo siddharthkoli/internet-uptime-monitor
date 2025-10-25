@@ -9,10 +9,11 @@ static const char* WIFI_PASS = ENV_WIFI_PASS;
 
 // Edge function that stores uptime data
 static const char* EDGE_FUNCTION_URL = ENV_EDGE_FUNCTION_URL;
-static const char* JWT = ENV_JWT;
+static const char* EDGE_FUNCTION_JWT = ENV_EDGE_FUNCTION_JWT;
 
 // Log Ingestion Endpoint
 static const char* LOG_INGESTION_URL = ENV_LOG_INGESTION_URL;
+static const char* LOG_INGESTION_JWT = ENV_LOG_INGESTION_JWT;
 
 // Device ID
 static const char* DEVICE_ID = "ESP32-01";
