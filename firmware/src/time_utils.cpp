@@ -4,6 +4,7 @@
 #include "time.h"
 
 #include "time_utils.h"
+#include "logger.h"
 
 extern Preferences prefs;
 
@@ -18,10 +19,10 @@ void syncTime() {
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   struct tm timeinfo;
   if (getLocalTime(&timeinfo)) {
-    Serial.println("Time synced");
+    logln("Time synced");
     timeSynced = true;
   } else {
-    Serial.println("Failed to sync time");
+    logln("Failed to sync time");
     timeSynced = false;
   }
 }
@@ -44,6 +45,6 @@ void waitUntilNextFullMinute() {
   if (!getLocalTime(&timeinfo)) return;
   int seconds = timeinfo.tm_sec;
   int delayMs = (60 - seconds) * 1000;
-  Serial.printf("Waiting %d seconds to align with next full minute...\n", 60 - seconds);
+  logf("Waiting %d seconds to align with next full minute...\n", 60 - seconds);
   delay(delayMs);
 }
