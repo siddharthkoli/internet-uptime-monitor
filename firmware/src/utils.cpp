@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "../include/utils.h"
+#include "utils.h"
 
 void blinkLED(int delayMs) {
     digitalWrite(LED_BUILTIN, HIGH);
