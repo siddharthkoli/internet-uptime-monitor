@@ -6,13 +6,13 @@ Be concise and make minimal, well-tested changes. The guidance below focuses on 
 
 ## Big picture
 - Runtime: ESP32 (Arduino framework) using PlatformIO. See `platformio.ini` (env: `esp32doit-devkit-v1`).
-- Main loop: `src/ping_supabase.ino` — constructs a small JSON per minute and either POSTs it or saves it locally.
+- Main loop: `src/main.ino` — constructs a small JSON per minute and either POSTs it or saves it locally.
 - Networking: `src/networking.cpp` / `include/networking.h` — HTTP helpers: `sendSingleLog`, `sendBatchLogs`, and `retryWithBackoff` (uses `std::function<bool()>`).
 - Storage: `src/storage.cpp` / `include/storage.h` — SPIFFS file `/failed_logs.txt` stores newline-delimited JSON (one JSON object per line). `readFailedLogs()` returns a JSON array assembled from lines.
 - Time: `src/time_utils.cpp` / `include/time_utils.h` — NTP via `configTime()`. `getMinuteOfDay()` and `waitUntilNextFullMinute()` control the 1-minute cadence. Preferences (non-volatile) are used as a fallback.
 
 ## Key files to read/modify
-- `src/ping_supabase.ino` — entry point, global `Preferences prefs`, device constants (DEVICE_ID, SEND_INTERVAL), and main control flow (align to minute, send, retry old logs).
+- `src/main.ino` — entry point, global `Preferences prefs`, device constants (DEVICE_ID, SEND_INTERVAL), and main control flow (align to minute, send, retry old logs).
 - `src/networking.cpp` — HTTPClient usage; sets `Content-Type: application/json` and `Authorization` header (JWT). Important: functions check `WiFi.status() != WL_CONNECTED` early.
 - `src/storage.cpp` — SPIFFS lifecycle, newline JSON write (`println`) and read (`readStringUntil('\n')`). Clearing removes `/failed_logs.txt`.
 - `include/secrets.example.h` — environment macros `ENV_WIFI_SSID`, `ENV_WIFI_PASS`, `ENV_EDGE_FUNCTION_URL`, `ENV_JWT`. Copy to `include/secrets.h` (local, not committed) and populate.
@@ -40,10 +40,10 @@ Be concise and make minimal, well-tested changes. The guidance below focuses on 
 - Do not commit real secrets. Use `include/secrets.h` locally (copy `secrets.example.h`) and add to .gitignore if not already ignored.
 - Preserve `WiFi.status()` checks in networking functions — code assumes offline check before making HTTP calls.
 - When modifying storage, keep both writer (`saveFailedLog`) and reader (`readFailedLogs`) in sync with any format change.
-- `prefs` is a global `Preferences` instance initialized in `ping_supabase.ino` with namespace `"netmon"`; avoid creating conflicting preference namespaces without updating callers.
+- `prefs` is a global `Preferences` instance initialized in `main.ino` with namespace `"netmon"`; avoid creating conflicting preference namespaces without updating callers.
 
 ## Small examples (how to change safely)
-- Change retry behavior: update call sites of `retryWithBackoff` (in `src/ping_supabase.ino`) to pass desired `maxRetries` and `retryDelayMs` rather than changing the default constant.
+- Change retry behavior: update call sites of `retryWithBackoff` (in `src/main.ino`) to pass desired `maxRetries` and `retryDelayMs` rather than changing the default constant.
 - Add a custom header: modify `src/networking.cpp` and add `http.addHeader("X-Device-ID", DEVICE_ID);` — keep `Content-Type` and `Authorization` headers.
 - To add structured unit tests: put tests under `test/` and target small helpers (e.g., `retryWithBackoff` with a stubbed operation). Use PlatformIO's Unity test runner.
 

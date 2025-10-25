@@ -7,22 +7,8 @@
 #include "time_utils.h"
 #include "storage.h"
 #include "networking.h"
-#include "secrets.h"
-
-// ==== CONFIG ====
-const char* WIFI_SSID = ENV_WIFI_SSID;
-const char* WIFI_PASS = ENV_WIFI_PASS;
-const char* EDGE_FUNCTION_URL = ENV_EDGE_FUNCTION_URL;
-const char* JWT = ENV_JWT;
-
-const char* DEVICE_ID = "ESP32-01";
-const long SEND_INTERVAL = 60000;  // 1 min
-
-const int LED_BLINK_SUCCESS = 1;
-const int LED_BLINK_FAILURE = 2;
-const int DEFAULT_BLINK_DELAY_MS = 250;
-
-const int STORAGE_CLEAR_BEFORE_BEGIN = false;
+#include "logger.h"
+#include "constants.h"
 
 
 // ==== Globals ====
@@ -33,13 +19,15 @@ void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
 
+  loggerInit();
+
   WiFi.begin(WIFI_SSID, WIFI_PASS);
-  Serial.print("\nConnecting to Wi-Fi...");
+  log("Connecting to Wi-Fi...");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    log(".");
   }
-  Serial.println(" Connected!");
+  log(" Connected!\n");
 
   storageInit(STORAGE_CLEAR_BEFORE_BEGIN);
   networkingInit();
