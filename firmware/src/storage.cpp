@@ -41,5 +41,8 @@ String readFailedLogs() {
 
 void clearFailedLogs() {
   logln("\nClearing previously failed logs");
-  SPIFFS.remove("/failed_logs.txt");
+  for (int i = 0; i < 3; i++) {
+    SPIFFS.remove("/failed_logs.txt");
+    delay(2000); 
+  }
 }

@@ -20,17 +20,15 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   loggerInit();
-
+  
   WiFi.begin(WIFI_SSID, WIFI_PASS);
-  log("Connecting to Wi-Fi...");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    log(".");
   }
-  logln(" Connected!");
-
-  storageInit(STORAGE_CLEAR_BEFORE_BEGIN);
+  logln("Connected to Wifi!");
+  
   networkingInit();
+  storageInit(STORAGE_CLEAR_BEFORE_BEGIN);
 
   prefs.begin("netmon", false);
   syncTime();
