@@ -9,4 +9,7 @@
 #define ENV_EDGE_FUNCTION_URL ""
 #define ENV_JWT ""
 
+// Turso
+#define ENV_LOG_INGESTION_URL ""
+
 #endif
