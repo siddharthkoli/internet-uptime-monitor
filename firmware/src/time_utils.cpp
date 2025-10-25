@@ -12,7 +12,7 @@ bool timeSynced = false;
 
 // ==== NTP Config ====
 const char* ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 19800;   // for IST (UTC+5:30)
+const long gmtOffset_sec = 19'800;   // for IST (UTC+5:30)
 const int daylightOffset_sec = 0;
 
 void syncTime() {
