@@ -6,6 +6,8 @@
 #include "time_utils.h"
 #include "logger.h"
 
+const String SERVICE = "time_utils";
+
 extern Preferences prefs;
 
 bool timeSynced = false;
@@ -19,10 +21,10 @@ void syncTime() {
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   struct tm timeinfo;
   if (getLocalTime(&timeinfo)) {
-    logln("Time synced");
+    logln("Time synced", LOG_LEVEL_INFO, SERVICE);
     timeSynced = true;
   } else {
-    logln("Failed to sync time");
+    logln("Failed to sync time", LOG_LEVEL_ERROR, SERVICE);
     timeSynced = false;
   }
 }
@@ -45,6 +47,6 @@ void waitUntilNextFullMinute() {
   if (!getLocalTime(&timeinfo)) return;
   int seconds = timeinfo.tm_sec;
   int delayMs = (60 - seconds) * 1000;
-  logf("Waiting %d seconds to align with next full minute...\n", 60 - seconds);
+  logf("Waiting %d seconds to align with next full minute...\n", LOG_LEVEL_INFO, SERVICE, 60 - seconds);
   delay(delayMs);
 }

@@ -5,8 +5,10 @@
 #include "networking.h"
 #include "logger.h"
 
+const String SERVICE  = "networking";
+
 void networkingInit() {
-  logln("\nConfiguring network settings");
+  logln("\nConfiguring network settings", LOG_LEVEL_INFO, SERVICE);
   #if defined(WIFI_AP_STA) || defined(WIFI_STA)
   WiFi.setAutoReconnect(true);
   #endif
@@ -34,10 +36,10 @@ bool retryWithBackoff(const std::function<bool()> &operation, int maxRetries, un
   while (attempt <= maxRetries) {
     if (operation()) return true;
     if (attempt == maxRetries) {
-      logf("Operation failed after all %d attempts. Aborting.\n", maxRetries);
+      logf("Operation failed after all %d attempts. Aborting.\n", LOG_LEVEL_ERROR, SERVICE, maxRetries);
       break;
     }
-    logf("Operation failed, retrying in %lu ms (attempt %d/%d)\n", retryDelayMs, attempt + 1, maxRetries);
+    logf("Operation failed, retrying in %lu ms (attempt %d/%d)\n", LOG_LEVEL_WARNING, SERVICE, retryDelayMs, attempt + 1, maxRetries);
     delay(retryDelayMs);
     attempt++;
   }

@@ -14,6 +14,8 @@
 // ==== Globals ====
 Preferences prefs;
 
+const String SERVICE = "main";
+
 // ==== SETUP ====
 void setup() {
   Serial.begin(115200);
@@ -25,7 +27,7 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
-  logln("Connected to Wifi!");
+  logln("Connected to Wifi!", LOG_LEVEL_INFO, SERVICE);
   
   networkingInit();
   storageInit(STORAGE_CLEAR_BEFORE_BEGIN);
@@ -49,24 +51,24 @@ void loop() {
   String jsonStr;
   serializeJson(doc, jsonStr);
 
-  logf("Minute %d -> sending log...\n", minuteCounter);
+  logf("Minute %d -> sending log...\n", LOG_LEVEL_INFO, SERVICE, minuteCounter);
 
   // Try sending to Supabase with retries
   auto sendOp = [&]() {
     return httpPost(jsonStr, EDGE_FUNCTION_URL, EDGE_FUNCTION_JWT);
   };
   if (retryWithBackoff(sendOp)) {
-    logln(" Sent successfully.");
+    logln(" Sent successfully.", LOG_LEVEL_INFO, SERVICE);
     blinkLED(LED_BLINK_SUCCESS, DEFAULT_BLINK_DELAY_MS);
     // Now retry old logs if any
     String oldLogs = readFailedLogs();
     if (oldLogs != "[]" && httpPost(oldLogs, EDGE_FUNCTION_URL, EDGE_FUNCTION_JWT)) {
-        logln("Sent previous failed logs.");
+        logln("Sent previous failed logs.", LOG_LEVEL_INFO, SERVICE);
         clearFailedLogs();
     }
   } else {
     blinkLED(LED_BLINK_FAILURE, DEFAULT_BLINK_DELAY_MS);
-    logln("Send failed — saving locally.");
+    logln("Send failed — saving locally.", LOG_LEVEL_ERROR, SERVICE);
     doc["status"] = "DOWN";
     String failJson;
     serializeJson(doc, failJson);
