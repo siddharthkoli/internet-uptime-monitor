@@ -19,6 +19,8 @@ void loggerInit();
 void log(const String message, LogLevel level, const String serviceName);
 void logf(const char* format, LogLevel level, const String serviceName, ...);
 void logln(const String message, LogLevel level, const String serviceName);
+unsigned long long getCurrentTimestampNano();
+String getLogLevelString(LogLevel level);
 String constructLogIngestionPayload(const String &logMessage, const String &serviceName, LogLevel level);
 void uploadLog(void* parameter);
 
