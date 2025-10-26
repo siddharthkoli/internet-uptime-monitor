@@ -6,7 +6,7 @@
 #include "networking.h"
 #include "constants.h"
 
-std::queue<String> buffer;
+std::queue<LogEntry> buffer;
 
 TaskHandle_t consumerHandle = NULL;
 SemaphoreHandle_t mtx = NULL;
@@ -29,7 +29,7 @@ void loggerInit() {
     );
 }
 
-void log(const String message) {
+void log(const String message, LogLevel level, const String serviceName) {
     Serial.print(message);
 
     if (mtx == NULL) {
@@ -37,46 +37,71 @@ void log(const String message) {
     }
 
     xSemaphoreTake(mtx, portMAX_DELAY);
-    buffer.push(message);
+
+    LogEntry logEntry;
+    logEntry.message = message;
+    logEntry.level = level;
+    logEntry.timestamp = getCurrentTimestampNano();
+    logEntry.serviceName = serviceName;
+    logEntry.deviceId = DEVICE_ID;
+
+    buffer.push(logEntry);
+
     xSemaphoreGive(mtx);
 }
 
-void logf(const char* format, ...) {
+void logf(const char* format, LogLevel level, const String serviceName, ...) {
     char buf[256];
     va_list args;
-    va_start(args, format);
+    va_start(args, serviceName);
     vsnprintf(buf, sizeof(buf), format, args);
     va_end(args);
-    log(String(buf));
+    log(String(buf), level, serviceName);
 }
 
-void logln(const String message) {
-    log(message + "\n");
+void logln(const String message, LogLevel level, const String serviceName) {
+    log(message + "\n", level, serviceName);
 }
 
-String constructLogIngestionPayload(const String &logMessage) {
+unsigned long long getCurrentTimestampNano() {
+    return (millis() * 1000000ULL);
+}
+
+String getLogLevelString(LogLevel level) {
+    switch (level) {
+        case LOG_LEVEL_INFO:
+            return "INFO";
+        case LOG_LEVEL_WARNING:
+            return "WARNING";
+        case LOG_LEVEL_ERROR:
+            return "ERROR";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+String constructLogIngestionPayload(LogEntry logEntry) {
     JsonDocument doc;
 
-    JsonArray requests = doc["requests"].to<JsonArray>();
+    JsonObject streams_0 = doc["streams"].add<JsonObject>();
 
-    JsonObject requests_0 = requests.add<JsonObject>();
-    requests_0["type"] = "execute";
+    JsonObject streams_0_stream = streams_0["stream"].to<JsonObject>();
+    streams_0_stream["device"] = logEntry.deviceId;
+    streams_0_stream["service"] = logEntry.serviceName;
+    streams_0_stream["level"] = getLogLevelString(logEntry.level);
 
-    JsonObject requests_0_stmt = requests_0["stmt"].to<JsonObject>();
-    requests_0_stmt["sql"] = "insert into t_serial_logs(message) values(?)";
+    JsonArray streams_0_values_0 = streams_0["values"].add<JsonArray>();
+    streams_0_values_0.add(String(logEntry.timestamp));
+    streams_0_values_0.add(logEntry.message);
 
-    JsonObject requests_0_stmt_args_0 = requests_0_stmt["args"].add<JsonObject>();
-    requests_0_stmt_args_0["type"] = "text";
-    requests_0_stmt_args_0["value"] = logMessage;
-    requests[1]["type"] = "close";
+    String output;
 
     doc.shrinkToFit();
 
-    String jsonStr;
-    serializeJson(doc, jsonStr);
-    return jsonStr;
+    serializeJson(doc, output);
 }
 
+// FreeRTOS task
 void uploadLog(void* parameter) {
     while (true) {
         if (mtx == NULL) {
@@ -85,7 +110,7 @@ void uploadLog(void* parameter) {
 
         xSemaphoreTake(mtx, portMAX_DELAY);
         if (!buffer.empty()) {
-            String logEntry = buffer.front();
+            LogEntry logEntry = buffer.front();
             buffer.pop();
             xSemaphoreGive(mtx);
 
