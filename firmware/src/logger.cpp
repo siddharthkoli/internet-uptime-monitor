@@ -81,6 +81,28 @@ String getLogLevelString(LogLevel level) {
 }
 
 String constructLogIngestionPayload(LogEntry logEntry) {
+    /*
+    GRAFANA LOGGING FORMAT:
+    {
+        "streams": [
+            {
+                // metadata
+                "stream": {
+                    "device": DEVICE_ID,
+                    "service": SERVICE_NAME,
+                    "level": LogLevel,
+                },
+                // logging data
+                "values": [
+                    [
+                        unix timestamp in nanoseconds as string,
+                        log message
+                    ]
+                ]
+            }
+        ]
+    }
+    */
     JsonDocument doc;
 
     JsonObject streams_0 = doc["streams"].add<JsonObject>();
