@@ -121,6 +121,8 @@ String constructLogIngestionPayload(LogEntry logEntry) {
     doc.shrinkToFit();
 
     serializeJson(doc, output);
+
+    return output;
 }
 
 // FreeRTOS task
