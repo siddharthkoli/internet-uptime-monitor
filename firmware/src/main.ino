@@ -20,6 +20,7 @@ const String SERVICE = "main";
 void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
+  Serial.println("\n\n=== Device Booting ===");
 
   loggerInit();
   
@@ -27,13 +28,15 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
+  
+  prefs.begin("netmon", false);
+  syncTime();
+
   logln("Connected to Wifi!", LOG_LEVEL_INFO, SERVICE);
   
   networkingInit();
   storageInit(STORAGE_CLEAR_BEFORE_BEGIN);
 
-  prefs.begin("netmon", false);
-  syncTime();
 
   // Align to the next real minute before starting loop
   waitUntilNextFullMinute();

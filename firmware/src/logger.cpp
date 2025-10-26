@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "networking.h"
 #include "constants.h"
+#include "time_utils.h"
 
 std::queue<LogEntry> buffer;
 
@@ -61,10 +62,6 @@ void logf(const char* format, LogLevel level, const String serviceName, ...) {
 
 void logln(const String message, LogLevel level, const String serviceName) {
     log(message + "\n", level, serviceName);
-}
-
-unsigned long long getCurrentTimestampNano() {
-    return (millis() * 1000000ULL);
 }
 
 String getLogLevelString(LogLevel level) {

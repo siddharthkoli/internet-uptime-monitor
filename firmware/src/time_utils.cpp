@@ -21,10 +21,10 @@ void syncTime() {
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   struct tm timeinfo;
   if (getLocalTime(&timeinfo)) {
-    logln("Time synced", LOG_LEVEL_INFO, SERVICE);
+    Serial.println("Time synced");
     timeSynced = true;
   } else {
-    logln("Failed to sync time", LOG_LEVEL_ERROR, SERVICE);
+    Serial.println("Failed to sync time");
     timeSynced = false;
   }
 }
@@ -40,6 +40,14 @@ int getMinuteOfDay() {
 
 void saveMinute(int minute) {
   prefs.putInt("minute", minute);
+}
+
+unsigned long long getCurrentTimestampNano() {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+
+  unsigned long long timestamp_ns = (unsigned long long)tv.tv_sec * 1000000000ULL + (unsigned long long)tv.tv_usec * 1000ULL;
+  return timestamp_ns;
 }
 
 void waitUntilNextFullMinute() {
